@@ -1,2 +1,2 @@
 #!/bin/bash
-cut -f 1 | tail -n +2 | head 11
+cut -f | tail -n +2 | head -n 11
