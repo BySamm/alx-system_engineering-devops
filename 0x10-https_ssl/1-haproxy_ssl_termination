@@ -1,0 +1,28 @@
+global
+    log 127.0.0.1 local0 notice
+    maxconn 2000
+    user haproxy
+    group haproxy
+
+defaults
+    log global
+    mode http
+    retries 3
+    timeout connect 5000
+    timeout client 30000
+    timeout server 30000
+
+frontend http-in
+    bind *:80
+    default_backend servers
+
+frontend https-in
+    bind *:443 ssl crt /etc/letsencrypt/live/www.bysamm.tech/both.pem
+    default_backend servers
+
+backend servers
+    balance roundrobin
+    redirect scheme https if !{ ssl_fc }
+    server 319031-web-01 54.166.165.167:80 check
+    server 319031-web-02 54.227.223.210:80 check
+
