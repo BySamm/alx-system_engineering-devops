@@ -26,19 +26,19 @@ touch /etc/nginx/html/index.html
 echo "Hello World!" > /etc/nginx/html/index.html
 # Sets Nginx to listen on port 80 and serve files from the /etc/nginx/html directory.
 printf %s "server {
-	listen      80;
-	listen      [::]:80 default_server;
-	root        /etc/nginx/html;
-	index       index.html index.htm;
+        listen      80;
+        listen      [::]:80 default_server;
+        root        /etc/nginx/html;
+        index       index.html index.htm;
 }
-" > /etc/nginx/sites-available/default
+" > /etc/nginx/sites-enabled/default
 
 # Adding redirect_me block
-sudo sed -i '6i\\trewrite ^redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n' /etc/nginx/sites-available/default
+sudo sed -i '6i\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n' /etc/nginx/sites-enabled/default
 
 # Set up a 404 page
-echo "Ceci n'est pas une page" >> /etc/nginx/html/error_404.html
-sudo sed -i '7i\\terror_page 404 /error_404.html;' /etc/nginx/sites-available/default
+echo "Ceci n'est pas une page" | sudo tee /etc/nginx/html/error_404.html > /dev/null
+sudo sed -i '7i\\terror_page 404 /error_404.html;' /etc/nginx/sites-enabled/default
 
 # Restarts the Nginx service to apply the configuration changes.
 service nginx restart
