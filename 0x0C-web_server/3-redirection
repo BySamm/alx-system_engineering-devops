@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
-# Installs Nginx with the following configurations:
+# Installing Nginx with the following configurations:
 #+    Listens on port 80.
 #+    Returns a page containing "Hello World!" when queried
-#++    at the root with a curl GET request.
+#+    at the root with a curl GET request and add a redirect_me block.
+
+#Check if nginx already exist and remove it
+
+nginx_dir="/etc/nginx/html"
+
+if [ -d "$nginx_dir" ]; then
+	echo "Directory EXISTS"
+	sudo rm -rf "$nginx_dir"
+fi
 
 #  updates the package lists for available software packages.
 apt-get update
@@ -17,32 +26,15 @@ touch /etc/nginx/html/index.html
 echo "Hello World!" > /etc/nginx/html/index.html
 # Sets Nginx to listen on port 80 and serve files from the /etc/nginx/html directory.
 printf %s "server {
-     listen      80;
-     listen      [::]:80 default_server;
-     root        /etc/nginx/html;
-     index       index.html index.htm;
+	listen      80;
+	listen      [::]:80 default_server;
+	root        /etc/nginx/html;
+	index       index.html index.htm;
 }
 " > /etc/nginx/sites-available/default
 
-# Configure a new server block for redirection
-echo "server {
-    listen 80;
-    listen [::]:80;
+# Adding redirect_me block
+sudo sed -i '6i\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n' /etc/nginx/sites-available/default
 
-    root /var/www/html;
-
-    # Add index.php to the list if you are using PHP
-    index index.html index.htm index.nginx-debian.html;
-
-    location /redirect_me {
-        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
-    }
-}" | sudo tee /etc/nginx/sites-available/redirect
-
-# Enable the new site configuration
-sudo ln -s /etc/nginx/sites-available/redirect /etc/nginx/sites-enabled/
-
-
-# Test Nginx configuration and reload
-sudo nginx -t
-sudo service nginx reload
+# Restarts the Nginx service to apply the configuration changes.
+service nginx restart

@@ -4,6 +4,15 @@
 #+    Returns a page containing "Hello World!" when queried
 #++    at the root with a curl GET request.
 
+#Check if nginx already exist and remove it
+
+nginx_dir="/etc/nginx/html"
+
+if [ -d "$nginx_dir" ]; then
+        echo "Directory EXISTS"
+        sudo rm -rf "$nginx_dir"
+fi
+
 #  updates the package lists for available software packages.
 apt-get update
 # installs the Nginx web server.
@@ -17,10 +26,10 @@ touch /etc/nginx/html/index.html
 echo "Hello World!" > /etc/nginx/html/index.html
 # Sets Nginx to listen on port 80 and serve files from the /etc/nginx/html directory.
 printf %s "server {
-     listen      80;
-     listen      [::]:80 default_server;
-     root        /etc/nginx/html;
-     index       index.html index.htm;
+	listen      80;
+	listen      [::]:80 default_server;
+	root        /etc/nginx/html;
+	index       index.html index.htm;
 }
 " > /etc/nginx/sites-available/default
 
