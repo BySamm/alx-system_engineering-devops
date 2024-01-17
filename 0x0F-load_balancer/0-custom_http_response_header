@@ -8,31 +8,44 @@
 #+    Contains a custom HTTP header named X-Served-By.
 #+    The value of the HTTP header is the hostname of the running server.
 
+#Check if nginx already exist and remove it
+
+nginx_dir="/etc/nginx/html"
+
+if [ -d "$nginx_dir" ]; then
+        echo "Directory EXISTS"
+        sudo rm -rf "$nginx_dir"
+fi
+
+#  updates the package lists for available software packages.
 apt-get update
+# installs the Nginx web server.
 apt-get install -y nginx
 
-mkdir -p /var/www/html
-touch /var/www/html/index.html
-echo "Hello World" > /var/www/html/index.html
-touch /var/www/html/404.html
-echo "Ceci n'est pas une page" > /var/www/html/404.html
-
+# Creates the /etc/nginx/html directory, which will serve as the document root directory for Nginx.
+mkdir /etc/nginx/html
+#  creates an empty index.html file inside the /etc/nginx/html directory.
+touch /etc/nginx/html/index.html
+#  sets the content of the index.html file to "Hello World!" using the echo command.
+echo "Hello World!" > /etc/nginx/html/index.html
+# Sets Nginx to listen on port 80 and serve files from the /etc/nginx/html directory.
 printf %s "server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    add_header X-Served-By $HOSTNAME;
-    root   /var/www/html;
-    index  index.html index.htm;
+        listen      80;
+        listen      [::]:80 default_server;
+        root        /etc/nginx/html;
+        index       index.html index.htm;
+}
+" > /etc/nginx/sites-enabled/default
 
-    location /redirect_me {
-        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
-    }
+# Adding redirect_me block
+sudo sed -i '6i\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n' /etc/nginx/sites-enabled/default
 
-    error_page 404 /404.html;
-    location /404 {
-      root /var/www/html;
-      internal;
-    }
-}" > /etc/nginx/sites-available/default
+# Set up a 404 page
+echo "Ceci n'est pas une page" | sudo tee /etc/nginx/html/error_404.html > /dev/null
+sudo sed -i '7i\\terror_page 404 /error_404.html;\n' /etc/nginx/sites-enabled/default
 
+# Adding the X-Served-By
+sudo sed -i '8i\\n\tadd_header X-Served-By $hostname;' /etc/nginx/sites-enabled/default
+
+# Restarts the Nginx service to apply the configuration changes.
 service nginx restart
