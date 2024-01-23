@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Script to know who with super privilege.
+# Argument to be passed
+
+sudo -u "$1" whoami
