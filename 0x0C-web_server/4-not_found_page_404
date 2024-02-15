@@ -1,44 +1,46 @@
 #!/usr/bin/env bash
-# Installing Nginx with the following configurations:
-#+    Listens on port 80.
-#+    Returns a page containing "Hello World!" when queried
-#+    at the root with a curl GET request and add a redirect_me block + 404 page.
+# Adding 404 configuration block
 
-#Check if nginx already exist and remove it
+#Check if nginx already exists
 
-nginx_dir="/etc/nginx/html"
+nginx_dir="/var/www/html"
 
 if [ -d "$nginx_dir" ]; then
-        echo "Directory EXISTS"
-        sudo rm -rf "$nginx_dir"
+        echo "Nginx EXISTS"
+else
+	echo "Installing nginx + 404 configurations"
+	
+	#  updates the package lists for available software packages.
+	sudo apt-get update -y
+	# installs the Nginx web server.
+	sudo apt-get install -y nginx
+	# starting nginx service
+	sudo service nginx start
+	# allowing nginx on firewall
+	sudo ufw allow 'Nginx HTTP'
+	# Give the user ownership to website files for easy editing
+	sudo chown -R "$USER":"$USER" /var/www/html
+	sudo chmod -R 755 /var/www
+
+	# Backup default index
+	cp /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.bckp
+
+	#  sets the content of the index.html file to "Hello World!" using the echo command.
+	echo "Hello World!" > /var/www/html/index.nginx-debian.html
+
+	# Sets Nginx to listen on port 80 and serve files from the default directory.
+	printf %s "server {
+        	listen      80;
+        	listen      [::]:80 default_server;
+        	root        /var/www/html;
+        	index       index.nginx-debian.html index.html index.htm;
+	}
+	" > /etc/nginx/sites-enabled/default
 fi
 
-#  updates the package lists for available software packages.
-apt-get update
-# installs the Nginx web server.
-apt-get install -y nginx
-
-# Creates the /etc/nginx/html directory, which will serve as the document root directory for Nginx.
-mkdir /etc/nginx/html
-#  creates an empty index.html file inside the /etc/nginx/html directory.
-touch /etc/nginx/html/index.html
-#  sets the content of the index.html file to "Hello World!" using the echo command.
-echo "Hello World!" > /etc/nginx/html/index.html
-# Sets Nginx to listen on port 80 and serve files from the /etc/nginx/html directory.
-printf %s "server {
-        listen      80;
-        listen      [::]:80 default_server;
-        root        /etc/nginx/html;
-        index       index.html index.htm;
-}
-" > /etc/nginx/sites-enabled/default
-
-# Adding redirect_me block
-sudo sed -i '6i\\trewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n' /etc/nginx/sites-enabled/default
-
 # Set up a 404 page
-echo "Ceci n'est pas une page" | sudo tee /etc/nginx/html/error_404.html > /dev/null
-sudo sed -i '7i\\terror_page 404 /error_404.html;' /etc/nginx/sites-enabled/default
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/error_404.html > /dev/null
+sudo sed -i '7i\\terror_page 404 /error_404.html;\n' /etc/nginx/sites-enabled/default
 
 # Restarts the Nginx service to apply the configuration changes.
 service nginx restart

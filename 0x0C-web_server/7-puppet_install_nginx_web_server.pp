@@ -14,22 +14,22 @@ class nginx_server {
     enable => true,
     require => Package['nginx'],
   }
-# manages the Nginx configuration file located at /etc/nginx/sites-available/default.
-  file { '/etc/nginx/sites-available/default':
+# manages the Nginx configuration file located at /etc/nginx/sites-enabled/default.
+  file { '/etc/nginx/sites-enabled/default':
     ensure  => present,
     content => "
       server {
         listen      80 default_server;
         listen      [::]:80 default_server;
         root        /var/www/html;
-        index       index.html index.htm;
+        index       index.nginx-debian.html index.html index.htm;
 
         location / {
           return 200 'Hello World!';
         }
 
         location /redirect_me {
-          return 301 http://cuberule.com/;
+          return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;
         }
       }
     ",
