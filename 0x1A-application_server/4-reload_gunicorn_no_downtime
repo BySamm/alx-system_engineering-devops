@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # Reload Gunicorn
 
-pgrep gunicorn | xargs kill -HUP
+pkill-HUP gunicorn
 
